@@ -8,94 +8,103 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// Defines Host class
 public class Host implements Runnable {
 
-    private ArrayList<ConnectionHandler> conncetions;
-    private ServerSocket server;
-    private boolean done;
-    private ExecutorService pool;
+    // Define instance variables
+    private ArrayList<ConnectionHandler> conncetions; // ArrayList that holds the connection handlers for each client.
+    private ServerSocket server; // ServerSocket to listen for incoming connections
+    private boolean done; // Boolean flag to indicate if the server is required to shutdown
+    private ExecutorService pool; // Thread pool to manage multiple client connections
 
+    // Host constructor
     public Host() {
         conncetions = new ArrayList<>();
         done = false;
     }
-
+    // Host run method - looks for incoming connections and starts new ConnectionHandler threads for each client
     @Override
     public void run() {
         try {
             server = new ServerSocket(9999);
-            pool = Executors.newCachedThreadPool();
+            pool = Executors.newCachedThreadPool(); // Initialize thread pool
             while (!done) {
-                Socket client = server.accept();
-                ConnectionHandler handler = new ConnectionHandler(client);
-                conncetions.add(handler);
-                pool.execute(handler);
+                Socket client = server.accept(); // Wait for incoming connections
+                ConnectionHandler handler = new ConnectionHandler(client); // Creates a new ConnectionHandler for the client
+                conncetions.add(handler); // Adds the ConnectionHandler to the ArrayList
+                pool.execute(handler); // Starts new thread for the ConnectionHandler
             }
         } catch (Exception e) {
-            shutdown();
+            shutdown(); // If an exception occurs, shutdown the server
         }
     }
 
+    // Method to broadcast a message to all connected clients
     public void broadcast(String message) {
-        for (ConnectionHandler ch : conncetions) {
+        for (ConnectionHandler ch : conncetions) { // Loop through all ConnectionHandlers in ArrayList
             if (ch != null) {
-                ch.sendMessage(message);
+                ch.sendMessage(message); // If ConnecionHandler != null , send message to client
             }
         }
     }
 
+    // Method to shutdown the server
     public void shutdown() {
         try {
-            done = true;
-            pool.shutdown();
+            done = true; // Sets done flag to true
+            pool.shutdown(); // Shuts down the thread pool
             if (!server.isClosed()) {
-                server.close();
+                server.close(); // If server is not already closed, close the server socket
             }
-            for (ConnectionHandler ch : conncetions) {
-                ch.shutdown();
+            for (ConnectionHandler ch : conncetions) { // Loop through all ConnectionHandlers in ArrayList
+                ch.shutdown(); // Shutdown each ConnectionHandler
             }
         } catch (IOException e) {
-            // ignore
+            // Ignore any exceptions that occur
         }
     }
 
+    // Define ConnectionHandler class
     class ConnectionHandler implements Runnable {
 
-        private Socket client;
-        private BufferedReader in;
-        private PrintWriter out;
-        private String nickname;
+        // Define instance variables
+        private Socket client; // Socket for client connection
+        private BufferedReader in; // BufferedReader to read input from client
+        private PrintWriter out; // PrintWriter to send output to client
+        private String ID; // String to store clients ID
 
+        // ConnectionHandler constructor
         public ConnectionHandler(Socket client) {
             this.client = client;
         }
 
+        // ConnectionHandler run method - reads input from client and sends message to all the clients that are connected
         @Override
         public void run() {
             try {
-                out = new PrintWriter(client.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                out.println("Please Enter Your ID: ");
-                nickname = in.readLine();
-                System.out.println(nickname + " Connected!");
-                broadcast(nickname + " Joined the chat!");
+                out = new PrintWriter(client.getOutputStream(), true); // Initializes PrintWriter to send output to the client
+                in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initializes BufferedReader to read input from the client
+                out.println("Please Enter Your ID: "); // Asks the client to enter their ID
+                ID = in.readLine(); // Reads the clients ID
+                System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now connceted
+                broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new user has joined
                 String message;
                 while ((message = in.readLine()) != null) {
-                    if (message.startsWith("/nick")) {
+                    if (message.startsWith("/changeID")) { // Command for the user to change ID
                         String[] messageSplit = message.split(" ", 2);
-                        if (messageSplit.length == 2) {
-                            broadcast(nickname + " renamed themselves to " + messageSplit[1]);
-                            System.out.println(nickname + " renamed themselves to " + messageSplit[1]);
-                            nickname = messageSplit[1];
-                            out.println("Successfully changed nickname to " + nickname);
+                        if (messageSplit.length == 2) { // Check to see if new ID is provided in correct format
+                            broadcast(ID + " renamed themselves to " + messageSplit[1]); // Sends a message to all connected clients that a client has changed their ID
+                            System.out.println(ID + " renamed themselves to " + messageSplit[1]); // Prints the clients changed ID to the console
+                            ID = messageSplit[1];
+                            out.println("Successfully changed ID to " + ID); // Sends a message to the client that their ID change was successful
                         } else {
-                            out.println("No Nickname Provided!");
+                            out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error message to the client
                         }
-                    } else if (message.startsWith("/quit")) {
-                        broadcast(nickname + " left the chat!");
-                        shutdown();
+                    } else if (message.startsWith("/quit")) { // Commands to quit the chat
+                        broadcast(ID + " left the chat!"); // Outputs a message to all connected clients that a user has quit the chat
+                        shutdown(); // Closes the connection for the client that quit
                     } else {
-                        broadcast(nickname + ": " + message);
+                        broadcast(ID + ": " + message); // Outputs a message to all the clients
                     }
                 }
             } catch (IOException e) {
@@ -104,25 +113,24 @@ public class Host implements Runnable {
 
         }
 
-        public void sendMessage(String message) {
-            out.println(message);
+        public void sendMessage(String message) { // Method to send messages to clients
+            out.println(message); // Outputs message to the client
         }
 
-        public void shutdown() {
+        public void shutdown() { // Method to close connection
             try {
-                in.close();
-                out.close();
-                if (!client.isClosed()) {
-                    client.close();
+                in.close(); // Closes the BufferedReader used to read input from the client
+                out.close(); // Closes the PrintWriter used to send output from the client
+                if (!client.isClosed()) { // Check to see if clients socket is still open
+                    client.close(); // Closes the clients connection
                 }
             } catch (IOException e) {
-                // ignore
             }
         }
     }
 
     public static void main(String[] args) {
-        Host server = new Host();
-        server.run();
+        Host server = new Host(); // Creates a new instance of the Host Class
+        server.run(); // Starts the server
     }
 }
