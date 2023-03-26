@@ -41,6 +41,9 @@ The prefix used for commands is "/"
 ```
 /info
 ```
+```
+/pm
+```
 ## Authors
 
 Nojus Faizovas  
