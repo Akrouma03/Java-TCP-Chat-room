@@ -22,7 +22,9 @@ public class Host implements Runnable {
         conncetions = new ArrayList<>();
         done = false;
     }
-    // Host run method - looks for incoming connections and starts new ConnectionHandler threads for each client
+
+    // Host run method - looks for incoming connections and starts new
+    // ConnectionHandler threads for each client
     @Override
     public void run() {
         try {
@@ -30,7 +32,9 @@ public class Host implements Runnable {
             pool = Executors.newCachedThreadPool(); // Initialize thread pool
             while (!done) {
                 Socket client = server.accept(); // Wait for incoming connections
-                ConnectionHandler handler = new ConnectionHandler(client, conncetions); // Creates a new ConnectionHandler for the client
+                ConnectionHandler handler = new ConnectionHandler(client, conncetions); // Creates a new
+                                                                                        // ConnectionHandler for the
+                                                                                        // client
                 conncetions.add(handler); // Adds the ConnectionHandler to the ArrayList
                 pool.execute(handler); // Starts new thread for the ConnectionHandler
             }
@@ -80,41 +84,57 @@ public class Host implements Runnable {
             this.connections = connections;
         }
 
-        // ConnectionHandler run method - reads input from client and sends message to all the clients that are connected
+        // ConnectionHandler run method - reads input from client and sends message to
+        // all the clients that are connected
         @Override
         public void run() {
             try {
-                out = new PrintWriter(client.getOutputStream(), true); // Initializes PrintWriter to send output to the client
-                in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initializes BufferedReader to read input from the client
+                out = new PrintWriter(client.getOutputStream(), true); // Initializes PrintWriter to send output to the
+                                                                       // client
+                in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initializes BufferedReader
+                                                                                         // to read input from the
+                                                                                         // client
                 out.println("Please Enter Your ID: "); // Asks the client to enter their ID
                 ID = in.readLine(); // Reads the clients ID
-                System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now connceted
-                broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new user has joined
+                System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now
+                                                        // connceted
+                broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new
+                                                     // user has joined
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("/changeID")) { // Command for the user to change ID
                         String[] messageSplit = message.split(" ", 2);
                         if (messageSplit.length == 2) { // Check to see if new ID is provided in correct format
-                            broadcast(ID + " renamed themselves to " + messageSplit[1]); // Sends a message to all connected clients that a client has changed their ID
-                            System.out.println(ID + " renamed themselves to " + messageSplit[1]); // Prints the clients changed ID to the console
+                            broadcast(ID + " renamed themselves to " + messageSplit[1]); // Sends a message to all
+                                                                                         // connected clients that a
+                                                                                         // client has changed their ID
+                            System.out.println(ID + " renamed themselves to " + messageSplit[1]); // Prints the clients
+                                                                                                  // changed ID to the
+                                                                                                  // console
                             ID = messageSplit[1];
-                            out.println("Successfully changed ID to " + ID); // Sends a message to the client that their ID change was successful
+                            out.println("Successfully changed ID to " + ID); // Sends a message to the client that their
+                                                                             // ID change was successful
                         } else {
-                            out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error message to the client
+                            out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error
+                                                            // message to the client
                         }
-                    // Private message command
+                        // Private message command
                     } else if (message.startsWith("/pm")) {
-                        String[] messageSplit = message.split(" ", 2); // Splits the message into two parts, the recipient and the message
+                        String[] messageSplit = message.split(" ", 2); // Splits the message into two parts, the
+                                                                       // recipient and the message
                         if (messageSplit.length == 2) { // Check to see if == 2
-                            String[] privateMessageSplit = messageSplit[1].split(" ", 2); // Splits the private message into two parts, recipient and message
+                            String[] privateMessageSplit = messageSplit[1].split(" ", 2); // Splits the private message
+                                                                                          // into two parts, recipient
+                                                                                          // and message
                             if (privateMessageSplit.length == 2) { // Check to see if == 2
                                 // Gets the recipient and message from the split
-                                String recipient = privateMessageSplit[0]; 
+                                String recipient = privateMessageSplit[0];
                                 String pmMessage = privateMessageSplit[1];
                                 boolean recipientFound = false;
                                 // Iterates through connected clients to find the recipient
                                 for (Host.ConnectionHandler ch : connections) {
-                                    if (ch.ID.equals(recipient)) { // If recipient is found, the private message will send and then end the loop
+                                    if (ch.ID.equals(recipient)) { // If recipient is found, the private message will
+                                                                   // send and then end the loop
                                         ch.sendMessage(ID + " (private message): " + pmMessage);
                                         out.println("Sent private message to " + recipient + ": " + pmMessage);
                                         recipientFound = true;
@@ -129,20 +149,25 @@ public class Host implements Runnable {
                             }
                         }
                     }
-                    
+                    // Show user info using "/info"
+                    else if (message.startsWith("/info")) {
+                        out.println(ID + client);
+                    }
 
                     else if (message.startsWith("/quit")) { // Commands to quit the chat
-                        broadcast(ID + " left the chat!"); // Outputs a message to all connected clients that a user has quit the chat
+                        broadcast(ID + " left the chat!"); // Outputs a message to all connected clients that a user has
+                                                           // quit the chat
                         shutdown(); // Closes the connection for the client that quit
                     } else {
                         broadcast(ID + ": " + message); // Outputs a message to all the clients
                     }
+
                 }
-                } catch (IOException e) {
+            } catch (IOException e) {
                 shutdown();
             }
         }
-        
+
         public void sendMessage(String message) { // Method to send messages to clients
             out.println(message); // Outputs message to the client
         }
