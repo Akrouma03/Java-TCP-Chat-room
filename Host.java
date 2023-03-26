@@ -30,7 +30,7 @@ public class Host implements Runnable {
             pool = Executors.newCachedThreadPool(); // Initialize thread pool
             while (!done) {
                 Socket client = server.accept(); // Wait for incoming connections
-                ConnectionHandler handler = new ConnectionHandler(client); // Creates a new ConnectionHandler for the client
+                ConnectionHandler handler = new ConnectionHandler(client, conncetions); // Creates a new ConnectionHandler for the client
                 conncetions.add(handler); // Adds the ConnectionHandler to the ArrayList
                 pool.execute(handler); // Starts new thread for the ConnectionHandler
             }
@@ -72,10 +72,12 @@ public class Host implements Runnable {
         private BufferedReader in; // BufferedReader to read input from client
         private PrintWriter out; // PrintWriter to send output to client
         private String ID; // String to store clients ID
+        private ArrayList<ConnectionHandler> connections;
 
         // ConnectionHandler constructor
-        public ConnectionHandler(Socket client) {
+        public ConnectionHandler(Socket client, ArrayList<ConnectionHandler> connections) {
             this.client = client;
+            this.connections = connections;
         }
 
         // ConnectionHandler run method - reads input from client and sends message to all the clients that are connected
@@ -100,19 +102,47 @@ public class Host implements Runnable {
                         } else {
                             out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error message to the client
                         }
-                    } else if (message.startsWith("/quit")) { // Commands to quit the chat
+                    // Private message command
+                    } else if (message.startsWith("/pm")) {
+                        String[] messageSplit = message.split(" ", 2); // Splits the message into two parts, the recipient and the message
+                        if (messageSplit.length == 2) { // Check to see if == 2
+                            String[] privateMessageSplit = messageSplit[1].split(" ", 2); // Splits the private message into two parts, recipient and message
+                            if (privateMessageSplit.length == 2) { // Check to see if == 2
+                                // Gets the recipient and message from the split
+                                String recipient = privateMessageSplit[0]; 
+                                String pmMessage = privateMessageSplit[1];
+                                boolean recipientFound = false;
+                                // Iterates through connected clients to find the recipient
+                                for (Host.ConnectionHandler ch : connections) {
+                                    if (ch.ID.equals(recipient)) { // If recipient is found, the private message will send and then end the loop
+                                        ch.sendMessage(ID + " (private message): " + pmMessage);
+                                        out.println("Sent private message to " + recipient + ": " + pmMessage);
+                                        recipientFound = true;
+                                        break;
+                                    }
+                                }
+                                if (!recipientFound) { // If recipient is not found, an error message will be printed
+                                    out.println(recipient + " not found");
+                                }
+                            } else {
+                                out.println("Invalid private message format"); // Error message for invalid format
+                            }
+                        }
+                    }
+                    
+
+                    else if (message.startsWith("/quit")) { // Commands to quit the chat
                         broadcast(ID + " left the chat!"); // Outputs a message to all connected clients that a user has quit the chat
                         shutdown(); // Closes the connection for the client that quit
                     } else {
                         broadcast(ID + ": " + message); // Outputs a message to all the clients
                     }
                 }
-            } catch (IOException e) {
+                } catch (IOException e) {
                 shutdown();
             }
-
         }
-
+        
         public void sendMessage(String message) { // Method to send messages to clients
             out.println(message); // Outputs message to the client
         }
