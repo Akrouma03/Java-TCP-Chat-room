@@ -19,7 +19,7 @@ This project is a java TCP based group chat/messaging service. Once successfully
 ```
 javac Client.java
 ```
-* Once you have compiled client.java file you can now execute it using:
+* Once you have compiled Client.java file you can now execute it using:
 ```
 java Client
 ```
