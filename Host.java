@@ -76,6 +76,8 @@ public class Host implements Runnable {
         private PrintWriter out; // PrintWriter to send output to client
         private String ID; // String to store clients ID
         private ArrayList<ConnectionHandler> connections;
+
+        private boolean isFirstUser = false;
         private boolean isAdmin = false;
 
         // ConnectionHandler constructor
@@ -97,6 +99,11 @@ public class Host implements Runnable {
                 ID = in.readLine(); // Reads the clients ID
                 System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now connceted
                 broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new user has joined
+
+                // Give the first user to connect a welcome notification
+                if (connections.size() == 1) {
+                    isFirstUser = true;
+                    out.println("Welcome, you are the first user to connect to the chat.");
 
                 // Give the first user to connect admin role
                 if (connections.size() == 1) {
