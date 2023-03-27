@@ -1,5 +1,12 @@
 # Java TCP Chat Room
 
+# Table of Contents
+1. [Description](#Description)
+2. [Getting Started](#Getting-Started)
+3. [Help](#Help)
+4. [Authors](#Authors)  
+
+
 ## Description
 
 This project is a java TCP based group chat/messaging service. Once successfully running, it is a fully functioning chat messaging CLI based application. All the commands and how-to-run will be provided below.
@@ -15,11 +22,11 @@ This project is a java TCP based group chat/messaging service. Once successfully
 
 * Step-By-Step guide on how to run the CLI application.
 * Run Host.java, in this case I done this through Visual Studio Code however most IDE's that support java should work.
-* Once you have ran Host.java. Using CMD, CD into the directory of the source code and execute the following:
+* Once you have ran Host.java. Using command prompt, CD into the directory of the source code and execute the following:
 ```
 javac Client.java
 ```
-* Once you have compiled client.java file you can now execute it using:
+* Once you have compiled Client.java file you can now execute it using:
 ```
 java Client
 ```
@@ -32,14 +39,23 @@ java Client
 ## Help
 Current Actiive Commands:  
 The prefix used for commands is "/"
+If [] are present, remove them and insert required text.
+  
+* This command changes the users ID.
 ```
-/ChangeID
+/ChangeID [ID]
 ```
+* This command quits the user from the chat room.
 ```
 /quit
 ```
+* This command shows the connected users ID, IP and Port.
 ```
 /info
+```
+* This command allows the user to private message another user.
+```
+/pm [ID] [MESSAGE]
 ```
 ## Authors
 

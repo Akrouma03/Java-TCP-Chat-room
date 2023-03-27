@@ -76,7 +76,9 @@ public class Host implements Runnable {
         private PrintWriter out; // PrintWriter to send output to client
         private String ID; // String to store clients ID
         private ArrayList<ConnectionHandler> connections;
+
         private boolean isFirstUser = false;
+        private boolean isAdmin = false;
 
         // ConnectionHandler constructor
         public ConnectionHandler(Socket client, ArrayList<ConnectionHandler> connections) {
@@ -102,6 +104,11 @@ public class Host implements Runnable {
                 if (connections.size() == 1) {
                     isFirstUser = true;
                     out.println("Welcome, you are the first user to connect to the chat.");
+
+                // Give the first user to connect admin role
+                if (connections.size() == 1) {
+                    isAdmin = true;
+                    out.println("You have been given the admin role!");
                 }
 
                 String message;
