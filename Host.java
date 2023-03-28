@@ -34,6 +34,10 @@ public class Host implements Runnable {
                 Socket client = server.accept(); // Wait for incoming connections
                 ConnectionHandler handler = new ConnectionHandler(client, connections); // Creates a new ConnectionHandler for the client
 
+                if (connections.isEmpty()) {
+                    handler.isFirstUser = true;
+                }
+
                 connections.add(handler); // Adds the ConnectionHandler to the ArrayList
                 pool.execute(handler); // Starts new thread for the ConnectionHandler
             }
@@ -77,6 +81,7 @@ public class Host implements Runnable {
         private String ID; // String to store clients ID
         private ArrayList<ConnectionHandler> connections;
         private boolean isFirstUser = false;
+        private boolean isAdmin = false;
 
         // ConnectionHandler constructor
         public ConnectionHandler(Socket client, ArrayList<ConnectionHandler> connections) {
@@ -95,14 +100,15 @@ public class Host implements Runnable {
 
                 out.println("Please Enter Your ID: "); // Asks the client to enter their ID
                 ID = in.readLine(); // Reads the clients ID
+
+                if (isFirstUser) {
+                    out.println("Welcome, you are the first user. You have been given administrator privileges.");
+                    ID = "Admin " + ID;
+                    isAdmin = true;
+                }
+
                 System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now connceted
                 broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new user has joined
-
-                // Give the first user to connect a welcome notification
-                if (connections.size() == 1) {
-                    isFirstUser = true;
-                    out.println("Welcome, you are the first user to connect to the chat.");
-                }
 
                 String message;
                 while ((message = in.readLine()) != null) {
@@ -120,7 +126,32 @@ public class Host implements Runnable {
                             out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error message to the client
 
                         }
+
+                    } else if (message.startsWith("/kick")) {
+                        if (!isAdmin) {
+                            out.println("You do not have admin permission to use this command.");
+                        } else {
+                            String[] messageSplit = message.split(" ", 2);
+                            if (messageSplit.length != 2) {
+                                out.println("Usage: /kick <user ID>");
+                            } else {
+                                String userID = messageSplit[1];
+                                boolean userFound = false;
+                                for (ConnectionHandler ch : connections) {
+                                    if (ch.ID.equals(userID)) {
+                                        userFound = true;
+                                        ch.sendMessage("You have been kicked from the chat!");
+                                        ch.shutdown();
+                                        connections.remove(ch);
+                                        broadcast(userID + " has been kicked from the chat by " + ID);
+                                        System.out.println(userID + " has been kicked from the chat by " + ID);
+                                    }
+                                }
+                            }
+                        }
+                    
                         // Private message command
+                    
                     } else if (message.startsWith("/pm")) {
                         String[] messageSplit = message.split(" ", 2); // Splits the message into two parts, the recipient and the message
 
