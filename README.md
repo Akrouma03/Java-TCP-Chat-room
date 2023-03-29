@@ -57,6 +57,11 @@ If [] are present, remove them and insert required text.
 ```
 /pm [ID] [MESSAGE]
 ```
+* This command allows the admin to kick another member.
+```
+/kick [ID]
+```
+
 ## Authors
 
 Nojus Faizovas  
