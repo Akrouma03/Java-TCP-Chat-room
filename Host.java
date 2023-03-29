@@ -16,11 +16,13 @@ public class Host implements Runnable {
     private ServerSocket server; // ServerSocket to listen for incoming connections
     private boolean done; // Boolean flag to indicate if the server is required to shutdown
     private ExecutorService pool; // Thread pool to manage multiple client connections
+    private ConnectionHandler currentAdmin = null;
 
     // Host constructor
     public Host() {
         connections = new ArrayList<>();
         done = false;
+        currentAdmin = null;
     }
 
     // Host run method - looks for incoming connections and starts new
@@ -33,6 +35,10 @@ public class Host implements Runnable {
             while (!done) {
                 Socket client = server.accept(); // Wait for incoming connections
                 ConnectionHandler handler = new ConnectionHandler(client, connections); // Creates a new ConnectionHandler for the client
+
+                if (connections.isEmpty()) {
+                    handler.isFirstUser = true;
+                }
 
                 connections.add(handler); // Adds the ConnectionHandler to the ArrayList
                 pool.execute(handler); // Starts new thread for the ConnectionHandler
@@ -77,6 +83,7 @@ public class Host implements Runnable {
         private String ID; // String to store clients ID
         private ArrayList<ConnectionHandler> connections;
         private boolean isFirstUser = false;
+        private boolean isAdmin = false;
 
         // ConnectionHandler constructor
         public ConnectionHandler(Socket client, ArrayList<ConnectionHandler> connections) {
@@ -92,17 +99,18 @@ public class Host implements Runnable {
                                                                        
                 in = new BufferedReader(new InputStreamReader(client.getInputStream())); // Initializes BufferedReader to read input from the client
 
-
                 out.println("Please Enter Your ID: "); // Asks the client to enter their ID
                 ID = in.readLine(); // Reads the clients ID
+
+                if (isFirstUser) {
+                    out.println("Welcome, you are the first user. You have been given administrator privileges.");
+                    ID = "Admin " + ID;
+                    isAdmin = true;
+                    currentAdmin = this;
+                }
+
                 System.out.println(ID + " Connected!"); // Prints confirmation of the clients ID and that they are now connceted
                 broadcast(ID + " Joined the chat!"); // Sends a message to all clients that are connected that a new user has joined
-
-                // Give the first user to connect a welcome notification
-                if (connections.size() == 1) {
-                    isFirstUser = true;
-                    out.println("Welcome, you are the first user to connect to the chat.");
-                }
 
                 String message;
                 while ((message = in.readLine()) != null) {
@@ -120,7 +128,32 @@ public class Host implements Runnable {
                             out.println("No ID Provided!"); // If ID is invalid / No ID was provided sends an error message to the client
 
                         }
+
+                    } else if (message.startsWith("/kick")) {
+                        if (!isAdmin) {
+                            out.println("You do not have admin permission to use this command.");
+                        } else {
+                            String[] messageSplit = message.split(" ", 2);
+                            if (messageSplit.length != 2) {
+                                out.println("Usage: /kick <user ID>");
+                            } else {
+                                String userID = messageSplit[1];
+                                boolean userFound = false;
+                                for (ConnectionHandler ch : connections) {
+                                    if (ch.ID.equals(userID)) {
+                                        userFound = true;
+                                        ch.sendMessage("You have been kicked from the chat!");
+                                        ch.shutdown();
+                                        connections.remove(ch);
+                                        broadcast(userID + " has been kicked from the chat by " + ID);
+                                        System.out.println(userID + " has been kicked from the chat by " + ID);
+                                    }
+                                }
+                            }
+                        }
+                    
                         // Private message command
+                    
                     } else if (message.startsWith("/pm")) {
                         String[] messageSplit = message.split(" ", 2); // Splits the message into two parts, the recipient and the message
 
@@ -165,6 +198,13 @@ public class Host implements Runnable {
 
                 }
             } catch (IOException e) {
+                // Client disconnected, remove connection handler from list and broadcast message
+                connections.remove(this);
+                broadcast(ID + " Left the chat!");
+                if (isAdmin && currentAdmin == this) {
+                    currentAdmin = null;
+                    assignNewAdmin();
+                }
                 shutdown();
             }
         }
@@ -184,6 +224,20 @@ public class Host implements Runnable {
             }
         }
     }
+
+    private void assignNewAdmin() {
+        for (ConnectionHandler ch : connections) {
+            if (ch != null && !ch.isAdmin) {
+                ch.isAdmin = true;
+                ch.ID = "Admin " + ch.ID;
+                currentAdmin = ch;
+                ch.out.println("You have been assigned administrator privileges!");
+                broadcast(ch.ID + " has been assigned administrator privileges!");
+                break;
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         Host server = new Host(); // Creates a new instance of the Host Class
