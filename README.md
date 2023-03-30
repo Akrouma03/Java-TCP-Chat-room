@@ -32,7 +32,7 @@ javac Client.java
 java Client
 ```
 * Once this is done it will prompt the user to enter their ID. You have now connected a user to the chat room!
-* To further connect more users to the chat room, you can open multiple instances of command prompt and use the CD command to find the directory using and execute the Client again.
+* To further connect more users to the chat room, you can open multiple instances of command prompt and use the CD command to find the directory you're using and execute the Client again.
 ```
 java Client
 ```
