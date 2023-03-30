@@ -1,3 +1,5 @@
+package JUnit_Testing;
+
 // READ THE README.md FILE FOR INSTRUCTIONS //
 // READ THE README.md FILE FOR INSTRUCTIONS //
 // READ THE README.md FILE FOR INSTRUCTIONS //
@@ -8,8 +10,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,10 +56,9 @@ public class Host implements Runnable {
 
     // Method to broadcast a message to all connected clients
     public void broadcast(String message) {
-        String timestamp = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "] "; // Gets current time as a string
         for (ConnectionHandler ch : connections) { // Loop through all ConnectionHandlers in ArrayList
             if (ch != null) {
-                ch.sendMessage(timestamp + message); // If ConnecionHandler != null , send message to client with timestamp
+                ch.sendMessage(message); // If ConnecionHandler != null , send message to client
             }
         }
     }
@@ -148,10 +147,8 @@ public class Host implements Runnable {
                                 out.println("Usage: /kick <user ID>");
                             } else {
                                 String userID = messageSplit[1]; // Takes the user ID from command
-                                boolean userFound = false;
                                 for (ConnectionHandler ch : connections) { // Iterates over all connected users
                                     if (ch.ID.equals(userID)) { // Check to see if the current client is the one to be kicked
-                                        userFound = true;
                                         ch.sendMessage("You have been kicked from the chat!"); // Sends a message to the user
                                         ch.shutdown(); // Disconnects the user from server
                                         connections.remove(ch); // Removes kicked user from list of connected users
@@ -233,6 +230,10 @@ public class Host implements Runnable {
             } catch (IOException e) {
             }
         }
+
+        public Object readMessage() {
+            return null;
+        }
     }
 
     // Method to assign administrator privileges to a new user if current admin disconnects
@@ -254,5 +255,9 @@ public class Host implements Runnable {
     public static void main(String[] args) {
         Host server = new Host(); // Creates a new instance of the Host Class
         server.run(); // Starts the server
+    }
+
+    public ArrayList<ConnectionHandler> getConnections() {
+        return null;
     }
 }
