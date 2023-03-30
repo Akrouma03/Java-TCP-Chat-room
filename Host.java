@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,9 +56,10 @@ public class Host implements Runnable {
 
     // Method to broadcast a message to all connected clients
     public void broadcast(String message) {
+        String timestamp = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) + "] "; // Gets current time as a string
         for (ConnectionHandler ch : connections) { // Loop through all ConnectionHandlers in ArrayList
             if (ch != null) {
-                ch.sendMessage(message); // If ConnecionHandler != null , send message to client
+                ch.sendMessage(timestamp + message); // If ConnecionHandler != null , send message to client with timestamp
             }
         }
     }
