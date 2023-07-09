@@ -65,7 +65,7 @@ If [] are present, replace with required text.
 
 ## Authors
 
-Nojus F  
-Joana J
-Akram T S  
-Ernestas A
+Nojus
+Joana
+Akram
+Ernestas
