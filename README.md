@@ -65,7 +65,7 @@ If [] are present, replace with required text.
 
 ## Authors
 
-Nojus Faizovas  
-Joana Jaku  
-Akram Toubal Seghir  
-Ernestas Arlauskas
+Nojus F  
+Joana J
+Akram T S  
+Ernestas A
