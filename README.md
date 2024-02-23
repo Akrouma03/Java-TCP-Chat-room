@@ -64,7 +64,3 @@ If [] are present, remove them and insert required text.
 
 ## Authors
 
-Nojus Faizovas  
-Joana Jaku  
-Akram Toubal Seghir  
-Ernestas Arlauskas
