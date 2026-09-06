@@ -1,66 +1,57 @@
 # Java TCP Chat Room
 
-# Table of Contents
-1. [Description](#Description)
-2. [Getting Started](#Getting-Started)
-3. [Help](#Help)
-4. [Authors](#Authors)  
+A terminal-based group chat application built with Java sockets. A host accepts multiple clients, broadcasts messages and handles private messages and administrator commands.
 
+## Run locally
 
-## Description
+Install a Java Development Kit (JDK), then clone and compile the project:
 
-This project is a java TCP based group chat/messaging service. Once successfully running, it is a fully functioning chat messaging CLI based application. All the commands and how-to-run will be provided below.
-
-## Getting Started
-
-### Installing
-
-* Download any IDE of your choice that can run / compile the required java files.
-* The source code can be downloaded to any location as long as you are able to CD into it via command prompt.
-
-### Executing program
-
-* Step-By-Step guide on how to run the CLI application.
-* Run Host.java, in this case I done this through Visual Studio Code however most IDE's that support java should work.
-* In the IDE run the Host.java file and open the command prompt.
-* Using command prompt, use the CD command to find the directory of the source code and execute the following:
+```bash
+git clone https://github.com/Akrouma03/Java-TCP-Chat-room.git
+cd Java-TCP-Chat-room
+javac Host.java Client.java
+java Host
 ```
-javac Client.java
-```
-* Once you have compiled Client.java file you can now execute it using:
-```
-java Client
-```
-* Once this is done it will prompt the user to enter their ID. You have now connected a user to the chat room!
-* To further connect more users to the chat room, you can open multiple instances of command prompt and use the CD command to find the directory you're using and execute the Client again.
-```
+
+Keep the host running. Open a second terminal in the same directory:
+
+```bash
 java Client
 ```
 
-## Help
-Current Actiive Commands:  
-The prefix used for commands is "/"
-If [] are present, replace with required text.
-  
-* This command changes the users ID.
-```
-/ChangeID [ID]
-```
-* This command quits the user from the chat room.
-```
-/quit
-```
-* This command shows the connected users ID, IP and Port.
-```
+Enter an ID when prompted. Repeat `java Client` in another terminal to add a participant. The client connects to `127.0.0.1:9999`, so this setup runs on one computer. The first connected user receives administrator privileges.
+
+## Commands
+
+Commands are case-sensitive. Replace angle-bracket placeholders with your own values.
+
+| Command | Action |
+| --- | --- |
+| `/changeID <ID>` | Change your display ID. |
+| `/pm <ID> <message>` | Send a private message to another user. |
+| `/info` | Display your ID and connection information. |
+| `/kick <ID>` | Disconnect a user; requires administrator privileges. |
+| `/quit` | Leave the chat. |
+
+Any other text is broadcast as a group message. Use single-word IDs for private-message recipients.
+
+## Try it
+
+Connect two clients, using `Alice` for the first and `Bob` for the second. From Alice's terminal, send:
+
+```text
+Hello everyone!
+/pm Bob Hello Bob!
 /info
 ```
-* This command allows the user to private message another user.
-```
-/pm [ID] [MESSAGE]
-```
-* This command allows the admin to kick another member.
-```
-/kick [ID]
-```
 
+Bob should receive the group message and the private message. Use `/quit` to leave, and Ctrl+C in the host terminal to stop the server.
 
+## Structure
+
+- `Host.java`: accepts connections, manages clients and routes messages.
+- `Client.java`: reads server messages and sends terminal input on a separate thread.
+
+## Scope
+
+An educational networking project. Messages use plain TCP, with no encryption, authenticated accounts or persistent message history. The supplied configuration is intended for a local demonstration.
